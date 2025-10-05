@@ -1,0 +1,27 @@
+Name            : sdl3
+Version         : 3.2.22-1
+Description     : A library for portable low-level access to a video framebuffer, audio output, mouse, and keyboard (Version 3)
+Architecture    : x86_64
+URL             : https://www.libsdl.org
+Licenses        : Zlib
+Groups          : None
+Provides        : None
+Depends On      : glibc  libxext  libxrender  libx11  libgl  libxcursor  hidapi  libusb
+Optional Deps   : alsa-lib: ALSA audio driver [installed]
+                  libpulse: PulseAudio audio driver [installed]
+                  jack: JACK audio driver [installed]
+                  pipewire: PipeWire audio driver [installed]
+                  vulkan-driver: vulkan renderer
+                  sndio: sndio audio driver
+                  libdecor: Wayland client decorations [installed]
+Required By     : fluidsynth  sdl2-compat  sdl3_image  sdl3_ttf
+Optional For    : None
+Conflicts With  : None
+Replaces        : None
+Installed Size  : 6.14 MiB
+Packager        : Sven-Hendrik Haase <svenstaro@archlinux.org>
+Build Date      : Tue Sep 2 14:12:10 2025
+Install Date    : Sat Sep 6 01:04:38 2025
+Install Reason  : Installed as a dependency for another package
+Install Script  : No
+Validated By    : Signature

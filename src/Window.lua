@@ -172,7 +172,7 @@
         end
 
         if not text_info or not text_info.width or not text_info.height then
-            return "Window:render(): SDL_Surfaceinfo failed to return width/height"
+            return SDLui:set_error("Window:render(): SDL_Surfaceinfo failed to return width/height")
         end
         
         text_surface.x = math.floor(text_surface.x + component.absolute_x + component.translated_area.x)
@@ -188,97 +188,194 @@
         return "OK"
 
     end
-
-
+        
     function __component_get_visible_text(component, start)
 
-        local return_string = ""
+        local full_text = (component.extended.text or "")
+        local area_width = component.translated_area.width
+        local font = component.extended.font
+        local font_size = component.extended.size
+        local text_length = #full_text
 
-        local text = component.extended.text
-        local width = component.translated_area.width
+        local caret_position = (component.extended.position or 0)
+        if (caret_position < 0) then
+            caret_position = 0
+        end
+        if (caret_position > (text_length + 1)) then
+            caret_position = (text_length + 1)
+        end
 
-        text_info = SDL_Textarea({
-            font = component.extended.font,
-            size = component.extended.size,
-            text = text
+        local full_text_info = SDL_Textarea({
+            font = font,
+            size = font_size,
+            text = full_text
         })
 
-        -- if (text_info.width < width) then
-        --     return text
-        -- end
-            -- component.extended.caret = {
-            --     x =  component.area.x,
-            --     width = Window.input_caret.width,
-            --     height = component.extended.size
-            -- }
+        if (full_text_info.width <= area_width) then
+            component.extended.start_position = 0
+            component.extended.end_position = text_length
+            component.extended.substring = full_text
 
-        local previous_width = 0
+            local prefix_text = string.sub(full_text, 1, (caret_position - 1))
+            local prefix_info = SDL_Textarea({
+                font = font,
+                size = font_size,
+                text = prefix_text
+            })
+
+            component.extended.caret = {
+                x = (component.area.x + prefix_info.width),
+                width = Window.input_caret.width,
+                height = font_size
+            }
+
+            return full_text
+        end
+
+        local function compute_window_end_from_start(start_index)
+            local substring = ""
+            local window_end_index = (start_index - 1)
+            for current_index = start_index, text_length, 1 do
+                substring = substring .. string.sub(full_text, current_index, current_index)
+                local trial_info = SDL_Textarea({
+                    font = font,
+                    size = font_size,
+                    text = substring
+                })
+                if (trial_info.width > area_width) then
+                    break
+                end
+                window_end_index = current_index
+            end
+            if (window_end_index >= start_index) then
+                return window_end_index, string.sub(full_text, math.max(start_index, 1), window_end_index)
+            else
+                return (start_index - 1), ""
+            end
+        end
+
+        local window_start_index, window_end_index, visible_substring = 1, 0, ""
 
         if (start) then
-            for i = 1, #text, 1 do
-                return_string = return_string .. string.sub(text, i, i)
-                
-                local text_info = SDL_Textarea({
-                    font = component.extended.font,
-                    size = component.extended.size,
-                    text = return_string
-                })
-
-                if (i == component.extended.position) then
-                    component.extended.caret = {
-                        x =  component.translated_area.width  + previous_width,
-                        width = Window.input_caret.width,
-                        height = component.extended.size
-                    }
-                end
-                
-                if (text_info.width > width) then
-                    if (i > 1) then
-                        i = (i - 1)
-                    end
-                    component.extended.start_position = 1
-                    component.extended.end_position = i
-                    component.extended.substring = string.sub(return_string, 1, i)
-                    return component.extended.substring
-                end
-
-                previous_width = text.info_width
+            window_start_index = component.extended.start_position or 1
+            if (window_start_index < 1) then
+                window_start_index = 1
             end
-        else 
-            if (not component.extended.end_position) then
-                component.extended.end_position = #text
+            if (window_start_index > text_length) then
+                window_start_index = text_length
+            end
+            window_end_index, visible_substring = compute_window_end_from_start(window_start_index)
+        else
+            window_end_index = component.extended.end_position or text_length
+            if (window_end_index < 1) then
+                window_end_index = 1
+            end
+            if (window_end_index > text_length) then
+                window_end_index = text_length
             end
 
-            for i = component.extended.end_position, 1, -1 do
-                return_string = string.sub(text, i, i) .. return_string
-                local text_info = SDL_Textarea({
-                    font = component.extended.font,
-                    size = component.extended.size,
-                    text = return_string
+            local tmp_substring = ""
+            local candidate_start_index = (window_end_index + 1)
+            for i = window_end_index, 1, -1 do
+                tmp_substring = string.sub(full_text, i, i) .. tmp_substring
+                local trial_info = SDL_Textarea({
+                    font = font,
+                    size = font_size,
+                    text = tmp_substring
                 })
-
-                if (i == component.extended.position) then
-                    component.extended.caret = {
-                        x = (component.translated_area.width - text_info.width),
-                        width = Window.input_caret.width,
-                        height = component.extended.size
-                    }
-
-                    if (i == 0) then
-                        break
-                    end
+                if (trial_info.width > area_width) then
+                    break
                 end
+                candidate_start_index = i
+            end
+            window_start_index = candidate_start_index
+            if (window_start_index <= window_end_index) then
+                visible_substring = string.sub(full_text, window_start_index, window_end_index)
+            else
+                visible_substring = ""
+            end
+        end
 
-                if (text_info.width > width) then
-                    component.extended.start_position = (i + 1)
-                    component.extended.substring = string.sub(return_string, 2)
-                    return component.extended.substring
+        while ((caret_position < window_start_index) and (window_start_index > 0)) do
+            window_start_index = (window_start_index - 1)
+            if (window_start_index < 0) then
+                window_start_index = 0
+            end
+            window_end_index, visible_substring = compute_window_end_from_start(math.max(window_start_index, 1))
+            if (window_end_index < math.max(window_start_index, 1)) then
+                break
+            end
+            if ((caret_position >= window_start_index) and (caret_position <= (window_end_index + 1))) then
+                break
+            end
+        end
+
+        while ((caret_position > (window_end_index + 1)) and (window_end_index < text_length)) do
+            window_start_index = (window_start_index + 1)
+            if (window_start_index > text_length) then
+                window_start_index = text_length
+            end
+            window_end_index, visible_substring = compute_window_end_from_start(window_start_index)
+            if (window_end_index < window_start_index) then
+                break
+            end
+        end
+
+        if ((caret_position < window_start_index) or (caret_position > (window_end_index + 1))) then
+            window_start_index = caret_position
+            if (window_start_index < 0) then
+                window_start_index = 0
+            end
+            if (window_start_index > text_length) then
+                window_start_index = text_length
+            end
+            window_end_index, visible_substring = compute_window_end_from_start(math.max(window_start_index, 1))
+            if (window_end_index < window_start_index) then
+                if (window_start_index <= text_length) then
+                    window_end_index = window_start_index
+                    visible_substring = string.sub(full_text, math.max(window_start_index, 1), window_end_index)
+                else
+                    visible_substring = ""
                 end
             end
         end
 
-        return return_string
+        component.extended.start_position = window_start_index
+        component.extended.end_position = window_end_index
+        component.extended.substring = visible_substring
 
+        local prefix_count = (caret_position - window_start_index)
+        if (prefix_count < 0) then
+            prefix_count = 0
+        end
+        if (prefix_count > #visible_substring) then
+            prefix_count = #visible_substring
+        end
+
+        local caret_x = component.area.x
+        local prefix_text = ""
+        if (prefix_count > 0) then
+            prefix_text = string.sub(visible_substring, 1, prefix_count)
+        end
+        local prefix_info = SDL_Textarea({
+            font = font,
+            size = font_size,
+            text = prefix_text
+        })
+
+        if (caret_position > 0) then
+            caret_x = component.area.x + prefix_info.width
+        else
+            caret_x = component.area.x + prefix_info.width - 8
+        end
+
+        component.extended.caret = {
+            x = caret_x,
+            width = Window.input_caret.width,
+            height = font_size
+        }
+
+        return visible_substring
     end
 
     function __component_enable_caret(component, clip_area)
@@ -288,7 +385,7 @@
             x = component.extended.caret.x + clip_area.x,
             y = component.extended.caret.y,
             width = component.extended.caret.width,
-            height = component.extended.caret.height, --component.extended.caret.height,
+            height = component.extended.caret.height,
             red = 255,
             green = 255,
             blue = 255,

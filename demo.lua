@@ -44,11 +44,13 @@
         SDL_Delay(SDLui.timeslice)
 
         if (SDLui.events.key_state[SDLK_Q] ~= nil) then
-            if (SDLui.events.key_state[SDLK_Q]) then
-                SDLui.initialised = false
+            if (SDLui.focused_component and SDLui.focused_component.type ~= Components.UI_TYPE_INPUT) then
+                if (SDLui.events.key_state[SDLK_Q]) then
+                    SDLui.initialised = false
+                end
             end
         end
-
+        
         SDL_Present()
 
     end

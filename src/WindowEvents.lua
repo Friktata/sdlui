@@ -31,12 +31,10 @@
         local absolute_y = component.translated_area.y + component.absolute_y
 
         if (event.x < absolute_x or event.x >= (absolute_x + component.translated_area.width)) then
-            -- SDL_Setcursor(Window.cursor)
             return nil
         end
 
         if (event.y < absolute_y or event.y >= (absolute_y + component.translated_area.height)) then
-            -- SDL_Setcursor(Window.cursor)
             return nil
         end
 
@@ -95,67 +93,54 @@
 --  Before we attempt to resd the value there.
 --
         SDL_Event("keydown", function(event)
-            
+    
             key_state[event.key] = true
 
             if (Window.focused_component.type == Components.UI_TYPE_INPUT) then
-                component = Window.focused_component
+                local component = Window.focused_component
+                local caret_pos = component.extended.position or 0
+                local start_pos = component.extended.start_position or 0
+                local end_pos = component.extended.end_position or #component.extended.text
+                local text_len = #component.extended.text
 
                 if (event.key == SDLK_LEFT) then
-                    if (component.extended.position > component.extended.start_position) then
-                        component.extended.position = (component.extended.position - 1)
-                    else
-                        if (component.extended.start_position > 1) then
-                            component.extended.start_position = (component.extended.start_position - 1)
-                        end
-                        if (component.extended.position >= 1) then
-                            component.extended.position = (component.extended.position - 1)
-                        end
-                        component.extended.end_position = (component.extended.end_position - 1)
+                    if (caret_pos > 0) then
+                        caret_pos = (caret_pos - 1)
                     end
 
+                    if (caret_pos < start_pos) then
+                        if (start_pos > 0) then
+                            start_pos = (start_pos - 1)
+                        end
+                        if (end_pos > start_pos) then
+                            end_pos = (end_pos - 1)
+                        end
+                    end
 
-                    component.surface_id = nil
-                    component.extended.surface_id = nil
-                    
-                    -- print(
-                    --     string.format("Shift left %s:\n\tStart: %d\n\tPosition: %d\n\tEnd: %d\n",
-                    --         component.extended.substring,
-                    --         component.extended.start_position,
-                    --         component.extended.position,
-                    --         component.extended.end_position
-                    --     )
-                    -- )
                 elseif (event.key == SDLK_RIGHT) then
-                    if (component.extended.position < component.extended.end_position) then
-                        component.extended.position = (component.extended.position + 1)
-                        component.extended.start_position = (component.extended.start_position + 1)
-                    else
-                        if (component.extended.end_position < #component.extended.text) then
-                            component.extended.end_position = (component.extended.end_position + 1)
-
-                            if (component.extended.position < #component.extended.text) then
-                                component.extended.position = (component.extended.position + 1)
-                            else
-                                component.extended.start_position = (component.extended.start_position + 1)
-                            end
-                        end
-
-                        component.surface_id = nil
-                        component.extended.surface_id = nil
+                    if (caret_pos < text_len) then
+                        caret_pos = (caret_pos + 1)
                     end
 
-                        -- print(
-                        --     string.format("Shift right:\n\tStart: %d\n\tPosition: %d\n\tEnd: %d\n",
-                        --         component.extended.start_position,
-                        --         component.extended.position,
-                        --         component.extended.end_position
-                        --     )
-                        -- )
+                    if (caret_pos > end_pos) then
+                        if (end_pos < text_len) then
+                            end_pos = (end_pos + 1)
+                        end
+                        if (start_pos < end_pos) then
+                            start_pos = (start_pos + 1)
+                        end
+                    end
                 end
-            end
 
+                component.extended.position = caret_pos
+                component.extended.start_position = start_pos
+                component.extended.end_position = end_pos
+
+                component.surface_id = nil
+                component.extended.surface_id = nil
+            end
         end)
+
         
         SDL_Event("keyup", function(event)
             

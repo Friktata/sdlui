@@ -84,30 +84,4 @@
     end
 
 
-    function modHelpers.insert_char(component, key_char)
-
-        print("INSERTING CHAR: " .. key_char)
-
-        if (component.extended.position == 0) then
-            component.extended.text = key_char .. component.extended.text
-        elseif (component.extended.position > #component.extended.text) then
-            component.extended.text = component.extended.text .. key_char
-        else
-            component.extended.text = string.sub(component.extended.text, 1, component.extended.position)
-            component.extended.text = component.extended.text .. key_char
-            component.extended.text = component.extended.text .. string.sub(component.extended.text, component.extended.position)
-        
-            if (component.extended.position > component.extended.end_position) then
-                component.extended.end_position = (component.extended.end_position + 1)
-                component.extended.start_position = (component.extended.start_position + 1)
-            end
-        end
-
-        component.extended.position = (component.extended.position + 1)
-
-        print("CURRENT STRING FOR " .. component.id .. " = " .. component.extended.text)
-
-    end
-
-
     return modHelpers

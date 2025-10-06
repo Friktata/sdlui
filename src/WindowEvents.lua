@@ -165,56 +165,30 @@
 
             if (Window.focused_component.type == Components.UI_TYPE_INPUT) then
                 local component = Window.focused_component
-                local caret_pos = component.extended.position or 0
-                local start_pos = component.extended.start_position or 0
-                local end_pos = component.extended.end_position or #component.extended.text
-                local text_len = #component.extended.text
 
                 if (event.key == SDLK_LEFT) then
-                    if (caret_pos > 0) then
-                        caret_pos = (caret_pos - 1)
-                    end
-
-                    if (caret_pos < start_pos) then
-                        if (start_pos > 0) then
-                            start_pos = (start_pos - 1)
-                        end
-                        if (end_pos > start_pos) then
-                            end_pos = (end_pos - 1)
-                        end
-                    end
+                    move_caret_left(component)
                 elseif (event.key == SDLK_RIGHT) then
-                    if (caret_pos < text_len) then
-                        caret_pos = (caret_pos + 1)
-                    end
+                    move_caret_right(component)
+                elseif (event.key == SDLK_BACKSPACE or event.key == SDLK_DELETE) then
+                    delete_char(component, event.key)
+                else
+                    local mapped_char = key_map[event.key]
 
-                    if (caret_pos > end_pos) then
-                        if (end_pos < text_len) then
-                            end_pos = (end_pos + 1)
+                    if (mapped_char ~= nil) then
+                        if (key_state[SDLK_LSHIFT] or key_state[SDLK_RSHIFT]) then
+                            mapped_char = shift_map[mapped_char] or mapped_char
                         end
-                        if (start_pos < end_pos) then
-                            start_pos = (start_pos + 1)
-                        end
+
+                        insert_char(component, mapped_char)
+
+                        component.surface_id = nil
+                        component.extended.surface_id = nil
                     end
-                else 
-                    local key_code = event.key
-                    local key_char = key_map[key_code]
-
-                    if key_char and (key_state[SDLK_LSHIFT] or key_state[SDLK_RSHIFT]) then
-                        key_char = shift_map[key_char] or key_char
-                    end
-
-                    print("Adding key \'" .. (key_char or "?") .. "\' to " .. Window.focused_component.id)
-
-                    modHelpers.insert_char(component, key_char)
                 end
 
-                component.extended.position = caret_pos
-                component.extended.start_position = start_pos
-                component.extended.end_position = end_pos
-
-                component.surface_id = nil
                 component.extended.surface_id = nil
+                component.surface_id = nil
             end
         end)
 

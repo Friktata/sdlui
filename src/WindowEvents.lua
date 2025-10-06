@@ -4,7 +4,6 @@
 
     modWindowEvents = {}
 
-
 --  SDL3 indexes buttons as:
 --
 --      1       - Left mouse button
@@ -266,12 +265,15 @@
                     if (new_hovered.type == Components.UI_TYPE_INPUT) then
                         print("Set focus to " .. new_hovered.id)
                         Window.focused_component = new_hovered
+                        __component_click_update_caret(new_hovered, event)
+                        new_hovered.surface_id = nil
+                        new_hovered.extended.surface_id = nil
                     end
                 else
                     Window.focused_component = nil
                 end
-                else
-                    Window.focused_component = nil
+            else
+                Window.focused_component = nil
             end
 
         end)

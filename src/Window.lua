@@ -369,7 +369,49 @@
         __component_get_visible_text(component, false, false)
 
     end
+        
+    function __component_click_update_caret(component, event)
+        if (component == nil or component.extended == nil) then
+            return
+        end
 
+        local visible_substring = component.extended.substring or ""
+        local font = component.extended.font
+        local font_size = component.extended.size
+        local area_x = component.translated_area.x
+        local click_x = event.x
+
+        if (component.absolute_x) then
+            area_x = component.translated_area.x + component.absolute_x
+        end
+
+        local local_x = click_x - area_x
+        if (local_x < 0) then
+            local_x = 0
+        end
+
+        local cumulative_width = 0
+        local caret_offset = 0
+        local found_position = false
+
+        for i = 1, #visible_substring do
+            local char = string.sub(visible_substring, i, i)
+            local char_info = SDL_Textarea({ font = font, size = font_size, text = char })
+            cumulative_width = cumulative_width + char_info.width
+
+            if (local_x < cumulative_width) then
+                caret_offset = i - 1
+                found_position = true
+                break
+            end
+        end
+
+        if (not found_position) then
+            caret_offset = #visible_substring
+        end
+
+        component.extended.position = (component.extended.start_position or 1) + caret_offset
+    end
 
     function insert_char(component, ch)
 

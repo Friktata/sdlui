@@ -2,7 +2,7 @@
 --  SDLui/src/Window.lua
 --
 
-    local modHelpers = require("Helpers")
+    modHelpers = require("Helpers")
 
 
     local modComponents = require("Components")

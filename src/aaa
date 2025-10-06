@@ -1,0 +1,113 @@
+int l_sdl_textsize(
+    lua_State                   *state
+) {
+    APP *app = (APP *) (*(void **) lua_getextraspace(state));
+
+    char *err;
+    char err_msg[LUA_ERR_LEN];
+
+    SDL_Entity *entity;
+
+    if (! (app->flags & APP_F_SDLINIT)) {
+        return __lua_error_msg(state, "SDL_Textsize(): SDL not initialised");
+    }
+
+    if (lua_gettop(state) != 2) {
+        return __lua_error_msg(state, "SDL_Textsize(): Exactly 2 parameters expected\n");
+    }
+    if (lua_type(state, 1) != LUA_TSTRING) {
+        return __lua_error_msg(state, "SDL_Text(): String expected for first parameter\n");
+    }
+    if (lua_type(state, 2) != LUA_TSTRING) {
+        return __lua_error_msg(state, "SDL_Text(): String expected for first parameter\n");
+    }
+
+    const char *entity_id = lua_tostring(state, 1);
+    const char *entity_text = lua_tostring(state, 2);
+
+    HASH_FIND_STR(app->hash, entity_id, entity);
+
+    if (! entity) {
+        if ((err = __sdl_entity(app, entity_id)) != NULL) {
+            return __lua_error_msg(state, err);
+        }
+        HASH_FIND_STR(app->hash, entity_id, entity);
+        if (! entity) {
+            return __lua_error_msg(state, "SDL_Text(): Entity \"%s\" not found\n", entity_id);
+        }
+        entity->surface = SDL_CreateSurface(area.w, area.h, SDL_PIXELFORMAT_ARGB8888);
+        if (! entity->surface) {
+            return __lua_error_msg(state, "SDL_Text(): %s\n", SDL_GetError());
+        }
+    }
+
+    if (entity->texture) {
+        SDL_DestroyTexture(entity->texture);
+        entity->texture = NULL;
+    }
+    if (entity->surface) {
+        SDL_DestroySurface(entity->surface);
+        entity->surface = NULL;
+    }
+
+    if (! (app->flags & APP_F_TTFINIT)) {
+        if (app->log) {
+            fprintf(app->log, ">>> Initialising TTF subsystem\n");
+        }
+        if (! TTF_Init()) {
+            return __lua_error_msg(state, "SDL_Text(): %s\n", SDL_GetError());
+        }
+        app->flags |= APP_F_TTFINIT;
+    }
+
+    TTF_Font *font = TTF_OpenFont(entity_path, entity_size);
+    
+    if (! font) {
+        return __lua_error_msg(state, "%s", SDL_GetError());
+    }
+
+    entity->surface = TTF_RenderText_Blended(font, entity_text, strlen(entity_text), rgba);
+    // entity->surface = SDL_RenderText_Blended(font, entity_text, strlen(entity_text), rgba);
+
+    if (! entity->surface) {
+        return __lua_error_msg(state, "%s", SDL_GetError());
+    }
+
+    entity->texture = SDL_CreateTextureFromSurface(app->renderer, entity->surface);
+
+    if (! entity->texture) {
+        return __lua_error_msg(state, "%s", SDL_GetError());
+    }
+
+    if (area.w < 1.0f) {
+        area.w = (float) entity->texture->w;
+    }
+    if (area.h < 1.0f) {
+        area.h = (float) entity->texture->h;
+    }
+
+    SDL_RenderTexture(app->renderer, entity->texture, NULL, &area);
+    memcpy(&entity->area, &area, (sizeof(SDL_FRect)));
+
+    if (app->log) {
+        fprintf(app->log, ">>> Created new SDL text %s @ %dx%d (%dx%d), font=\"%s\", size=%d, text=\"%s\"\n",
+            entity_id,
+            (int) area.x,
+            (int) area.y,
+            (int) area.w,
+            (int) area.h,
+            entity_path,
+            entity_size,
+            entity_text
+        );
+    }
+
+    if ((err = entity_set_text(entity, entity_path, entity_text, entity_size, rgba)) != NULL) {
+        return __lua_error_msg(state, err);
+    }
+
+    TTF_CloseFont(font);
+
+    lua_pushstring(state, "OK");
+    return 1;
+}

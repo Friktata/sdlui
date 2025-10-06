@@ -23,6 +23,73 @@
         false
     }
 
+-- Map SDL keycodes to lowercase characters
+    local key_map = {
+        [SDLK_A] = "a",
+        [SDLK_B] = "b",
+        [SDLK_C] = "c",
+        [SDLK_D] = "d",
+        [SDLK_E] = "e",
+        [SDLK_F] = "f",
+        [SDLK_G] = "g",
+        [SDLK_H] = "h",
+        [SDLK_I] = "i",
+        [SDLK_J] = "j",
+        [SDLK_K] = "k",
+        [SDLK_L] = "l",
+        [SDLK_M] = "m",
+        [SDLK_N] = "n",
+        [SDLK_O] = "o",
+        [SDLK_P] = "p",
+        [SDLK_Q] = "q",
+        [SDLK_R] = "r",
+        [SDLK_S] = "s",
+        [SDLK_T] = "t",
+        [SDLK_U] = "u",
+        [SDLK_V] = "v",
+        [SDLK_W] = "w",
+        [SDLK_X] = "x",
+        [SDLK_Y] = "y",
+        [SDLK_Z] = "z",
+        [SDLK_0] = "0",
+        [SDLK_1] = "1",
+        [SDLK_2] = "2",
+        [SDLK_3] = "3",
+        [SDLK_4] = "4",
+        [SDLK_5] = "5",
+        [SDLK_6] = "6",
+        [SDLK_7] = "7",
+        [SDLK_8] = "8",
+        [SDLK_9] = "9",
+        [SDLK_SPACE] = " ",
+        [SDLK_COMMA] = ",",
+        [SDLK_PERIOD] = ".",
+        [SDLK_MINUS] = "-",
+        [SDLK_EQUALS] = "=",
+        [SDLK_SEMICOLON] = ";",
+        [SDLK_APOSTROPHE] = "'",
+        [SDLK_SLASH] = "/",
+        [SDLK_BACKSLASH] = "\\",
+        [SDLK_LEFTBRACKET] = "[",
+        [SDLK_RIGHTBRACKET] = "]",
+        [SDLK_GRAVE] = "`"
+    }
+
+    -- Shift mappings for characters that change with Shift
+    local shift_map = {
+        ["a"] = "A", ["b"] = "B", ["c"] = "C", ["d"] = "D", ["e"] = "E",
+        ["f"] = "F", ["g"] = "G", ["h"] = "H", ["i"] = "I", ["j"] = "J",
+        ["k"] = "K", ["l"] = "L", ["m"] = "M", ["n"] = "N", ["o"] = "O",
+        ["p"] = "P", ["q"] = "Q", ["r"] = "R", ["s"] = "S", ["t"] = "T",
+        ["u"] = "U", ["v"] = "V", ["w"] = "W", ["x"] = "X", ["y"] = "Y",
+        ["z"] = "Z",
+        ["1"] = "!", ["2"] = "@", ["3"] = "#", ["4"] = "$", ["5"] = "%",
+        ["6"] = "^", ["7"] = "&", ["8"] = "*", ["9"] = "(", ["0"] = ")",
+        ["-"] = "_", ["="] = "+", ["["] = "{", ["]"] = "}", [";"] = ":",
+        ["'"] = "\"", ["\\"] = "|", [","] = "<", ["."] = ">", ["/"] = "?",
+        ["`"] = "~"
+    }
+
 
     local key_state = {}
 
@@ -116,7 +183,6 @@
                             end_pos = (end_pos - 1)
                         end
                     end
-
                 elseif (event.key == SDLK_RIGHT) then
                     if (caret_pos < text_len) then
                         caret_pos = (caret_pos + 1)
@@ -130,6 +196,17 @@
                             start_pos = (start_pos + 1)
                         end
                     end
+                else 
+                    local key_code = event.key
+                    local key_char = key_map[key_code]
+
+                    if key_char and (key_state[SDLK_LSHIFT] or key_state[SDLK_RSHIFT]) then
+                        key_char = shift_map[key_char] or key_char
+                    end
+
+                    print("Adding key \'" .. (key_char or "?") .. "\' to " .. Window.focused_component.id)
+
+                    modHelpers.insert_char(component, key_char)
                 end
 
                 component.extended.position = caret_pos
@@ -147,7 +224,7 @@
             key_state[event.key] = false
 
             if (not Window.focused_component or Window.focused_component.type ~= Window.UI_TYPE_TEXT) then
-                
+                -- return
             end
 
         end)
@@ -216,7 +293,11 @@
                         print("Set focus to " .. new_hovered.id)
                         Window.focused_component = new_hovered
                     end
+                else
+                    Window.focused_component = nil
                 end
+                else
+                    Window.focused_component = nil
             end
 
         end)

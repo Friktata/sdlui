@@ -289,7 +289,7 @@
         if (input.position == nil) then
             -- if (input.position > #input.text) then
                 input.position = #input.text
-                print("SET POSITION FOR to " .. input.position)
+                -- print("SET POSITION FOR to " .. input.position)
             -- end
         end
 

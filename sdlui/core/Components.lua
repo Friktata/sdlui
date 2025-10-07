@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  sdlui/src/Components.lua
+--  sdlui/core/Components.lua
 --
 
     local modComponents = {}
@@ -204,8 +204,6 @@
 
         for event_type, callback in pairs(callbacks) do
 
-            -- print(string.format("Adding %s callback to component %s", event_type, self.id))
-
             self.callbacks[event_type] = callback
 
         end
@@ -247,7 +245,6 @@
             self.foreground = label.color
         end
 
-        -- print("SET EXTENDED LABEL TEXT " .. label.text)
         self.extended = label
 
         return "OK"

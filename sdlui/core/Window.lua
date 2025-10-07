@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  SDLui/src/Window.lua
+--  sdlui/core/Window.lua
 --
 
     modHelpers = require("Helpers")
@@ -239,6 +239,7 @@
         end
 
         return best_fit, substring
+
     end
 
     function __component_get_visible_text(component)
@@ -322,6 +323,7 @@
     function move_caret_left(component)
 
         component.extended = component.extended or {}
+
         local text = component.extended.text or ""
         local text_len = #text
         local pos = component.extended.position or 0
@@ -510,7 +512,7 @@
             text = string.sub(visible_substring, 1, 1)
         })
 
-        component.extended.glyph_info = first_glyph_info
+        -- component.extended.glyph_info = first_glyph_info
         caret_x = caret_x - (first_glyph_info.width + 2)
 
         component.extended.caret.x = component.extended.caret.x
@@ -519,7 +521,7 @@
 
         local caret_surface = {
             id = component.surface_id .. "__caret__",
-            x = component.extended.caret.x + (clip_area.x - first_glyph_info.width),
+            x = component.extended.caret.x + (clip_area.x - (first_glyph_info.width - 2)),
             y = component.extended.caret.y,
             width = component.extended.caret.width,
             height = component.extended.caret.height,

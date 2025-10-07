@@ -231,12 +231,18 @@
     input_cursor        = "hand"
 
     input_area          = { x = "10", y = "50", width = "80", height = 32 }
+    input2_area          = { x = "10", y = "70", width = "80", height = 32 }
     input_cursor        = "ibeam"
     
     input_text          = {
         font = "/usr/share/fonts/TTF/Hack-Regular.ttf",
         size = 18,
         text = "Just a random string of text to display in the text input box, lot of junk/nonsense for testing purposes"
+    }
+    input2_text          = {
+        font = "/usr/share/fonts/TTF/Hack-Regular.ttf",
+        size = 24,
+        text = "Loo, ma - a bigger font! M...mawr-mawr?!"
     }
 
     input_callbacks     = {
@@ -253,6 +259,7 @@
     }
 
     local TextBox = SDLui:new_component("menu", "textbox", Components.UI_TYPE_INPUT)
+    local TextBox2 = SDLui:new_component("menu", "textbox2", Components.UI_TYPE_INPUT)
 
     if (SDLui:is_error()) then
         SDLui:quit()
@@ -267,6 +274,16 @@
         cursor          = input_cursor,
         area            = input_area,
         input           = input_text
+    })
+
+    SDL_Error = TextBox2:set({
+        visible         = true,
+        foreground      = input_foreground,
+        background      = input_background,
+        border          = input_border,
+        cursor          = input_cursor,
+        area            = input2_area,
+        input           = input2_text
     })
 
     if (SDL_Error ~= "OK" and SDL_Error ~= nil) then

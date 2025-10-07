@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  sdlui/src/WindowEvents.lua
+--  sdlui/core/WindowEvents.lua
 --
 
     modWindowEvents = {}
@@ -74,7 +74,7 @@
         [SDLK_GRAVE] = "`"
     }
 
-    -- Shift mappings for characters that change with Shift
+-- Shift mappings for characters that change with Shift
     local shift_map = {
         ["a"] = "A", ["b"] = "B", ["c"] = "C", ["d"] = "D", ["e"] = "E",
         ["f"] = "F", ["g"] = "G", ["h"] = "H", ["i"] = "I", ["j"] = "J",

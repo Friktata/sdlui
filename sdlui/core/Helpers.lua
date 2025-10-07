@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---  sdlui/src/Helpers.lua
+--  sdlui/core/Helpers.lua
 --
 
     local modHelpers = {}

@@ -1,6 +1,6 @@
 #!/usr/bin/env sdlua
 
-    package.path = package.path .. ";./src/?.lua"
+    package.path = package.path .. ";./sdlui/?.lua;./sdlui/core/?.lua"
 
 
     local modEvents = require("events")
@@ -10,7 +10,7 @@
 --  sdlui/demo.lua
 --
 
-    SDLui = require("src.SDLui")
+    SDLui = require("sdlui.SDLui")
 
 
     SDLui:initialise(false)
